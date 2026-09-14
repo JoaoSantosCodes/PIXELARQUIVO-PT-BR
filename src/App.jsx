@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { INITIAL_ROMS } from "./data/roms";
 import Navbar from "./components/Navbar";
 import HeroBanner from "./components/HeroBanner";
@@ -36,6 +36,20 @@ export default function App() {
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
+  // Global Keyboard Shortcuts (Escape to close modals, / to search)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSelectedRom(null);
+        setActiveEmulatorRom(null);
+        setIsFavoritesDrawerOpen(false);
+        setIsSubmitModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem("pixelarquivo_favorites", JSON.stringify(favorites));
@@ -57,15 +71,12 @@ export default function App() {
   // Filter & Sort Logic
   const filteredRoms = useMemo(() => {
     return roms.filter((rom) => {
-      // Console Filter
       if (selectedConsole !== "ALL" && rom.system !== selectedConsole) {
         return false;
       }
-      // Genre Filter
       if (selectedGenre !== "Todos" && rom.genre !== selectedGenre) {
         return false;
       }
-      // Resource Filter
       if (selectedTranslationType === "DUBLADO" && !rom.isDubbed) {
         return false;
       }
@@ -75,7 +86,6 @@ export default function App() {
       if (selectedTranslationType === "FEATURED" && !rom.featured) {
         return false;
       }
-      // Search Term Filter
       if (searchTerm.trim() !== "") {
         const query = searchTerm.toLowerCase();
         const matchesTitle = rom.title.toLowerCase().includes(query);
@@ -103,6 +113,8 @@ export default function App() {
     setSelectedTranslationType("ALL");
     setSortBy("POPULAR");
   };
+
+  const hasActiveFilters = selectedConsole !== "ALL" || selectedGenre !== "Todos" || selectedTranslationType !== "ALL" || searchTerm !== "";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -144,6 +156,88 @@ export default function App() {
           setSortBy={setSortBy}
           totalResultsCount={filteredRoms.length}
         />
+
+        {/* Active Filters Tag Pills */}
+        {hasActiveFilters && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            marginBottom: "20px",
+            padding: "8px 14px",
+            backgroundColor: "rgba(16, 185, 129, 0.08)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid rgba(16, 185, 129, 0.2)"
+          }}>
+            <span style={{ fontSize: "0.8rem", color: "var(--accent-emerald)", fontWeight: 700 }}>
+              Filtros Ativos:
+            </span>
+
+            {selectedConsole !== "ALL" && (
+              <span style={{
+                fontSize: "0.75rem",
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: "#ffffff",
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px"
+              }}>
+                Console: {selectedConsole}
+                <button onClick={() => setSelectedConsole("ALL")} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.75rem" }}>✕</button>
+              </span>
+            )}
+
+            {selectedGenre !== "Todos" && (
+              <span style={{
+                fontSize: "0.75rem",
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: "#ffffff",
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px"
+              }}>
+                Gênero: {selectedGenre}
+                <button onClick={() => setSelectedGenre("Todos")} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.75rem" }}>✕</button>
+              </span>
+            )}
+
+            {searchTerm && (
+              <span style={{
+                fontSize: "0.75rem",
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: "#ffffff",
+                padding: "2px 8px",
+                borderRadius: "var(--radius-sm)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px"
+              }}>
+                Busca: "{searchTerm}"
+                <button onClick={() => setSearchTerm("")} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.75rem" }}>✕</button>
+              </span>
+            )}
+
+            <button
+              onClick={handleResetFilters}
+              style={{
+                fontSize: "0.75rem",
+                color: "#ef4444",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+                marginLeft: "auto"
+              }}
+            >
+              Limpar Todos os Filtros
+            </button>
+          </div>
+        )}
 
         {/* ROMs Cards Grid */}
         <RomGrid
