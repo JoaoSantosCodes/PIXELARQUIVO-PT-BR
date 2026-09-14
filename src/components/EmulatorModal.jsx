@@ -1,26 +1,77 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, RotateCcw, Volume2, VolumeX, Pause, Play, Gamepad2, Upload, Maximize2, ShieldCheck, Sparkles, FolderOpen } from "lucide-react";
+import { X, RotateCcw, Volume2, VolumeX, Pause, Play, Gamepad2, Upload, Maximize2, ShieldCheck, Sparkles, FolderOpen, FileCode, CheckCircle2 } from "lucide-react";
 import { playSelectSound, playCoinSound, playStartSound } from "../utils/audio";
 
 export default function EmulatorModal({ rom, onClose }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [score, setScore] = useState(0);
-  const [loadedFileName, setLoadedFileName] = useState(null);
-  const [activeMessage, setActiveMessage] = useState("Emulador Retro Ativo! Use as Setas e Z/X para Jogar.");
+  
+  // Local File ROM State
+  const [localFile, setLocalFile] = useState(null);
+  const [localFileUrl, setLocalFileUrl] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [activeMessage, setActiveMessage] = useState("Emulador Retro Ativo! Arraste sua ROM local ou use o jogo integrado.");
 
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Retro Canvas Mini Game Engine Logic
+  // Clean up Blob URLs on unmount
   useEffect(() => {
-    if (!canvasRef.current || loadedFileName) return;
+    return () => {
+      if (localFileUrl) {
+        URL.revokeObjectURL(localFileUrl);
+      }
+    };
+  }, [localFileUrl]);
+
+  // Handle local ROM selection from user disk
+  const processLocalFile = (file) => {
+    if (!file) return;
+
+    if (localFileUrl) {
+      URL.revokeObjectURL(localFileUrl);
+    }
+
+    const blobUrl = URL.createObjectURL(file);
+    setLocalFile(file);
+    setLocalFileUrl(blobUrl);
+    playStartSound();
+    setActiveMessage(`ROM Local Carregada: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    processLocalFile(file);
+  };
+
+  // Drag and Drop Events
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processLocalFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  // Retro Canvas Mini Game Engine Logic (Runs when no local ROM file is selected)
+  useEffect(() => {
+    if (!canvasRef.current || localFileUrl) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let animationFrameId;
 
-    // Game state variables
     let player = {
       x: 100,
       y: 260,
@@ -48,20 +99,14 @@ export default function EmulatorModal({ rom, onClose }) {
 
     let keys = {};
 
-    const handleKeyDown = (e) => {
-      keys[e.key] = true;
-    };
-    const handleKeyUp = (e) => {
-      keys[e.key] = false;
-    };
+    const handleKeyDown = (e) => { keys[e.key] = true; };
+    const handleKeyUp = (e) => { keys[e.key] = false; };
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
-    // Main Game Loop
     const render = () => {
       if (isPlaying) {
-        // Player Controls
         if (keys["ArrowRight"] || keys["d"] || keys["D"]) {
           player.vx = 3.5;
           player.facing = "right";
@@ -78,12 +123,10 @@ export default function EmulatorModal({ rom, onClose }) {
           playSelectSound();
         }
 
-        // Gravity
         player.vy += 0.5;
         player.x += player.vx;
         player.y += player.vy;
 
-        // Boundaries & Platform Floor
         const floorY = 260;
         if (player.y >= floorY) {
           player.y = floorY;
@@ -94,34 +137,28 @@ export default function EmulatorModal({ rom, onClose }) {
         if (player.x < 10) player.x = 10;
         if (player.x > canvas.width - 34) player.x = canvas.width - 34;
 
-        // Enemies movement
         enemies.forEach((enemy) => {
           enemy.x += enemy.vx;
           if (enemy.x <= enemy.minX || enemy.x >= enemy.maxX) {
             enemy.vx *= -1;
           }
-
-          // Check Collision with player
           if (
             player.x < enemy.x + enemy.width &&
             player.x + player.width > enemy.x &&
             player.y < enemy.y + enemy.height &&
             player.y + player.height > enemy.y
           ) {
-            // Respawn player
             player.x = 40;
             player.y = floorY;
-            setActiveMessage("Perdeu uma vida! Tente novamente.");
+            setActiveMessage("Vidas: 2 • Tente novamente!");
           }
         });
 
-        // Collect Coins
         coins.forEach((coin) => {
           if (!coin.collected) {
             const dx = player.x + 12 - coin.x;
             const dy = player.y + 16 - coin.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 22) {
+            if (Math.sqrt(dx * dx + dy * dy) < 22) {
               coin.collected = true;
               setScore((s) => s + 100);
               playCoinSound();
@@ -130,23 +167,19 @@ export default function EmulatorModal({ rom, onClose }) {
         });
       }
 
-      // Draw Screen Frame
       ctx.fillStyle = "#0c0f17";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Background CRT Grid / Stars
       ctx.fillStyle = "rgba(16, 185, 129, 0.08)";
       for (let i = 0; i < canvas.width; i += 40) {
         ctx.fillRect(i, 0, 1, canvas.height);
       }
 
-      // Floor & Platforms
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(0, 292, canvas.width, 40);
       ctx.fillStyle = "#10b981";
       ctx.fillRect(0, 292, canvas.width, 4);
 
-      // Draw Coins
       coins.forEach((coin) => {
         if (!coin.collected) {
           ctx.beginPath();
@@ -159,7 +192,6 @@ export default function EmulatorModal({ rom, onClose }) {
         }
       });
 
-      // Draw Enemies (Red Goombas)
       enemies.forEach((enemy) => {
         ctx.fillStyle = "#ef4444";
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
@@ -168,11 +200,9 @@ export default function EmulatorModal({ rom, onClose }) {
         ctx.fillRect(enemy.x + 12, enemy.y + 4, 4, 4);
       });
 
-      // Draw Player (Hero Character)
       ctx.fillStyle = rom.systemBadgeColor || "#10b981";
       ctx.fillRect(player.x, player.y, player.width, player.height);
 
-      // Eyes
       ctx.fillStyle = "#ffffff";
       if (player.facing === "right") {
         ctx.fillRect(player.x + 14, player.y + 6, 6, 6);
@@ -180,7 +210,6 @@ export default function EmulatorModal({ rom, onClose }) {
         ctx.fillRect(player.x + 4, player.y + 6, 6, 6);
       }
 
-      // Scanline Effect
       ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
       for (let y = 0; y < canvas.height; y += 4) {
         ctx.fillRect(0, y, canvas.width, 2);
@@ -196,15 +225,37 @@ export default function EmulatorModal({ rom, onClose }) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isPlaying, loadedFileName, rom]);
+  }, [isPlaying, localFileUrl, rom]);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLoadedFileName(file.name);
-      playStartSound();
-      setActiveMessage(`ROM Carregada com sucesso: ${file.name}`);
-    }
+  // Construct inline srcDoc for EmulatorJS client-side WebAssembly player
+  const getEmulatorSrcDoc = () => {
+    if (!localFileUrl) return "";
+    const core = rom.emulatorType || "snes";
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #080a0f; color: #fff; font-family: sans-serif; }
+    #emulator-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+  <div id="emulator-container">
+    <div id="game"></div>
+  </div>
+  <script>
+    EJS_player = '#game';
+    EJS_core = '${core}';
+    EJS_gameUrl = '${localFileUrl}';
+    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    EJS_startOnLoaded = true;
+    EJS_language = 'pt-BR';
+  </script>
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+</body>
+</html>`;
   };
 
   if (!rom) return null;
@@ -214,88 +265,106 @@ export default function EmulatorModal({ rom, onClose }) {
       <div
         className="glass-card"
         onClick={(e) => e.stopPropagation()}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         style={{
           width: "100%",
-          maxWidth: "960px",
+          maxWidth: "980px",
           backgroundColor: "#080a0f",
-          border: "2px solid var(--accent-emerald)",
+          border: isDragging ? "2px dashed #10b981" : "2px solid var(--accent-emerald)",
           borderRadius: "var(--radius-lg)",
           padding: "20px",
           display: "flex",
           flexDirection: "column",
           gap: "16px",
-          boxShadow: "0 0 40px rgba(16, 185, 129, 0.3)"
+          boxShadow: isDragging ? "0 0 50px rgba(16, 185, 129, 0.6)" : "0 0 40px rgba(16, 185, 129, 0.3)",
+          position: "relative"
         }}
       >
+        {/* Hidden File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+          accept=".smc,.sfc,.gba,.bin,.z64,.md,.gen,.nes,.zip,.iso"
+          style={{ display: "none" }}
+        />
+
+        {/* Drag Overlay Notification */}
+        {isDragging && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(10, 12, 16, 0.92)",
+            borderRadius: "var(--radius-lg)",
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "3px dashed #10b981",
+            gap: "12px"
+          }}>
+            <Upload size={48} color="var(--accent-emerald)" />
+            <h3 style={{ fontSize: "1.4rem", color: "#ffffff", fontWeight: 800 }}>
+              Solte seu arquivo de ROM aqui!
+            </h3>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+              Formatos aceitos: .smc, .sfc, .gba, .bin, .z64, .md, .zip
+            </p>
+          </div>
+        )}
+
         {/* Header Bar */}
         <div style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           borderBottom: "1px solid var(--border-color)",
-          paddingBottom: "12px"
+          paddingBottom: "12px",
+          flexWrap: "wrap",
+          gap: "10px"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{
               width: "10px",
               height: "10px",
               borderRadius: "50%",
-              backgroundColor: isPlaying ? "#10b981" : "#f59e0b",
-              boxShadow: isPlaying ? "0 0 10px #10b981" : "none"
+              backgroundColor: localFile ? "#3b82f6" : (isPlaying ? "#10b981" : "#f59e0b"),
+              boxShadow: "0 0 10px #10b981"
             }} />
             <h3 className="font-heading" style={{ fontSize: "1.2rem", color: "#ffffff", fontWeight: 700 }}>
-              {rom.title} <span style={{ color: "var(--accent-emerald)", fontSize: "0.9rem" }}>[{rom.system} PT-BR]</span>
+              {localFile ? localFile.name : rom.title} <span style={{ color: "var(--accent-emerald)", fontSize: "0.9rem" }}>[{rom.system} PT-BR]</span>
             </h3>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--accent-amber)", fontWeight: 700, marginRight: "8px" }}>
-              SCORE: {score}
-            </span>
-
-            {/* Custom ROM File Input Trigger */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".smc,.sfc,.gba,.bin,.z64,.md,.gen,.nes,.zip"
-              style={{ display: "none" }}
-            />
+            {/* Upload Button */}
             <button
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              title="Carregar Arquivo de ROM (.smc, .gba, .bin, .z64)"
-              style={{
-                background: "rgba(16, 185, 129, 0.15)",
-                border: "1px solid rgba(16, 185, 129, 0.4)",
-                color: "var(--accent-emerald)",
-                padding: "6px 12px",
-                borderRadius: "var(--radius-sm)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "0.8rem",
-                fontWeight: 600
-              }}
+              className="btn-retro-primary"
+              style={{ padding: "6px 14px", fontSize: "0.82rem" }}
             >
-              <FolderOpen size={15} />
-              <span>Carregar ROM Local</span>
+              <FolderOpen size={16} />
+              <span>{localFile ? "Trocar Arquivo ROM" : "Selecionar ROM do PC"}</span>
             </button>
 
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              style={{
-                background: "rgba(255, 255, 255, 0.08)",
-                border: "none",
-                color: "#ffffff",
-                padding: "6px 10px",
-                borderRadius: "var(--radius-sm)",
-                cursor: "pointer",
-                fontSize: "0.8rem"
-              }}
-            >
-              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
+            {localFile && (
+              <button
+                onClick={() => {
+                  setLocalFile(null);
+                  if (localFileUrl) URL.revokeObjectURL(localFileUrl);
+                  setLocalFileUrl(null);
+                  setActiveMessage("Modo Canvas Retro Ativado");
+                }}
+                className="btn-retro-secondary"
+                style={{ padding: "6px 10px", fontSize: "0.8rem" }}
+                title="Voltar para a demonstração retro"
+              >
+                Voltar Demo
+              </button>
+            )}
 
             <button
               onClick={onClose}
@@ -313,11 +382,11 @@ export default function EmulatorModal({ rom, onClose }) {
           </div>
         </div>
 
-        {/* Emulator Main Screen Container */}
+        {/* Emulator Display Frame */}
         <div style={{
           position: "relative",
           width: "100%",
-          height: "460px",
+          height: "480px",
           backgroundColor: "#000000",
           borderRadius: "var(--radius-md)",
           overflow: "hidden",
@@ -326,64 +395,25 @@ export default function EmulatorModal({ rom, onClose }) {
           alignItems: "center",
           justifyContent: "center"
         }}>
-          {loadedFileName ? (
-            /* Loaded Custom ROM Screen Frame */
-            <div style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#05070a",
-              color: "#ffffff",
-              padding: "20px"
-            }}>
-              <div style={{
-                width: "80px",
-                height: "80px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(16, 185, 129, 0.2)",
-                border: "2px solid var(--accent-emerald)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "16px",
-                boxShadow: "0 0 30px rgba(16, 185, 129, 0.5)"
-              }}>
-                <Gamepad2 size={40} color="var(--accent-emerald)" />
-              </div>
-
-              <span className="badge-ptbr" style={{ marginBottom: "10px" }}>
-                ROM Executando no Navegador
-              </span>
-
-              <h4 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "8px", color: "var(--accent-emerald)" }}>
-                {loadedFileName}
-              </h4>
-
-              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", maxWidth: "480px", textAlign: "center", marginBottom: "20px" }}>
-                Emulador Retro HTML5 ativo para {rom.system}. Mapeamento de botões via teclado ou controle USB ativado.
-              </p>
-
-              <iframe
-                src={`https://emulatorjs.org/demo.html?core=${rom.emulatorType}`}
-                title="EmulatorJS Player"
-                style={{
-                  width: "100%",
-                  height: "280px",
-                  border: "none",
-                  borderRadius: "var(--radius-sm)"
-                }}
-              />
-            </div>
+          {localFileUrl ? (
+            /* 100% Client-Side WebAssembly Emulator Engine with User's Local File */
+            <iframe
+              srcDoc={getEmulatorSrcDoc()}
+              title={`Emulador WebAssembly - ${localFile.name}`}
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+                backgroundColor: "#000000"
+              }}
+            />
           ) : (
-            /* Playable 60FPS Retro Game Engine Canvas */
+            /* Interactive 60FPS Retro Demo Game Canvas */
             <div style={{ position: "relative", width: "100%", height: "100%" }}>
               <canvas
                 ref={canvasRef}
-                width={880}
-                height={460}
+                width={920}
+                height={480}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -391,33 +421,35 @@ export default function EmulatorModal({ rom, onClose }) {
                 }}
               />
 
-              {/* On-screen Controls Bar */}
+              {/* HUD Banner Overlay */}
               <div style={{
                 position: "absolute",
-                bottom: "12px",
-                left: "12px",
-                right: "12px",
+                top: "14px",
+                left: "14px",
+                right: "14px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                backgroundColor: "rgba(10, 12, 16, 0.8)",
-                backdropFilter: "blur(6px)",
-                padding: "8px 14px",
+                backgroundColor: "rgba(10, 12, 16, 0.85)",
+                backdropFilter: "blur(8px)",
+                padding: "8px 16px",
                 borderRadius: "var(--radius-md)",
                 border: "1px solid var(--border-color)"
               }}>
-                <span style={{ fontSize: "0.85rem", color: "var(--accent-emerald)", fontWeight: 600 }}>
-                  {activeMessage}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FolderOpen size={16} color="var(--accent-emerald)" />
+                  <span style={{ fontSize: "0.85rem", color: "#ffffff", fontWeight: 600 }}>
+                    Para rodar seu jogo local: clique em <strong style={{ color: "var(--accent-emerald)" }}>"Selecionar ROM do PC"</strong> ou arraste seu arquivo <code style={{ color: "var(--accent-cyan)" }}>.smc / .gba / .bin</code> aqui!
+                  </span>
+                </div>
 
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     className="btn-retro-primary"
                     style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-                    onClick={() => setIsPlaying(!isPlaying)}
+                    onClick={() => fileInputRef.current && fileInputRef.current.click()}
                   >
-                    {isPlaying ? <Pause size={14} /> : <Play size={14} fill="#ffffff" />}
-                    {isPlaying ? "Pausar" : "Continuar"}
+                    <Upload size={14} /> Carregar Seu Arquivo
                   </button>
                 </div>
               </div>
@@ -425,7 +457,7 @@ export default function EmulatorModal({ rom, onClose }) {
           )}
         </div>
 
-        {/* Keyboard Controls Footer Bar */}
+        {/* Footer Guidance Bar */}
         <div style={{
           display: "flex",
           alignItems: "center",
@@ -439,11 +471,11 @@ export default function EmulatorModal({ rom, onClose }) {
           gap: "10px"
         }}>
           <div>
-            <strong style={{ color: "#ffffff" }}>Controles no Teclado:</strong> Setas / A-D (Mover) | <strong style={{ color: "var(--accent-emerald)" }}>Seta Cima / Z / W</strong> (Pular) | Colete as moedas douradas!
+            <strong style={{ color: "#ffffff" }}>Como Funciona:</strong> Selecione qualquer ROM (<code style={{ color: "var(--accent-emerald)" }}>.smc, .sfc, .gba, .bin, .z64</code>) salva no seu computador. O jogo é processado 100% no seu navegador com suporte a controles USB e teclado!
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--accent-emerald)", fontWeight: 600 }}>
-            <ShieldCheck size={15} /> Motor Retro Canvas HTML5 Integrado
+            <ShieldCheck size={15} /> 100% Seguro & Privado (Sem Upload Remoto)
           </div>
         </div>
 
