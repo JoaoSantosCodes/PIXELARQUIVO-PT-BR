@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, RotateCcw, Volume2, VolumeX, Pause, Play, Gamepad2, Upload, Maximize2, ShieldCheck, Sparkles, FolderOpen, FileCode, CheckCircle2 } from "lucide-react";
+import { X, RotateCcw, Volume2, VolumeX, Pause, Play, Gamepad2, Upload, Maximize2, ShieldCheck, Sparkles, FolderOpen, FileCode, CheckCircle2, Cpu } from "lucide-react";
 import { playSelectSound, playCoinSound, playStartSound } from "../utils/audio";
 
 export default function EmulatorModal({ rom, onClose }) {
@@ -10,11 +10,36 @@ export default function EmulatorModal({ rom, onClose }) {
   // Local or Bundled ROM File State
   const [localFile, setLocalFile] = useState(null);
   const [localFileUrl, setLocalFileUrl] = useState(null);
+  const [selectedCore, setSelectedCore] = useState(rom.emulatorType || "snes");
   const [isDragging, setIsDragging] = useState(false);
   const [activeMessage, setActiveMessage] = useState("Emulador Retro Ativo! Arraste sua ROM local ou use o jogo integrado.");
 
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Auto-detect core based on file extension and name
+  const detectCore = (fileName, fallbackSystem) => {
+    if (!fileName) return fallbackSystem || "snes";
+    const nameLower = fileName.toLowerCase();
+    const ext = nameLower.split(".").pop();
+
+    if (["gba", "agb"].includes(ext)) return "gba";
+    if (["smc", "sfc", "fig", "swc"].includes(ext)) return "snes";
+    if (["nes", "fds"].includes(ext)) return "nes";
+    if (["z64", "n64", "v64"].includes(ext)) return "n64";
+    if (["md", "gen", "smd"].includes(ext)) return "segaMD";
+    if (["bin", "cue", "iso", "img", "pbp", "mdf"].includes(ext)) {
+      // Check if it's PS1 or Genesis or SNES
+      if (nameLower.includes("ps1") || nameLower.includes("playstation") || nameLower.includes("resident") || nameLower.includes("castlevania") || nameLower.includes("re2") || nameLower.includes("re3")) {
+        return "psx";
+      }
+      if (nameLower.includes("snes") || nameLower.includes("super")) {
+        return "snes";
+      }
+      return "psx"; // Default for .bin / .cue is PS1
+    }
+    return fallbackSystem || "snes";
+  };
 
   // Clean up Blob URLs on unmount
   useEffect(() => {
@@ -33,11 +58,14 @@ export default function EmulatorModal({ rom, onClose }) {
       URL.revokeObjectURL(localFileUrl);
     }
 
+    const detected = detectCore(file.name, rom.emulatorType);
+    setSelectedCore(detected);
+
     const blobUrl = URL.createObjectURL(file);
     setLocalFile(file);
     setLocalFileUrl(blobUrl);
     playStartSound();
-    setActiveMessage(`ROM Local Carregada: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
+    setActiveMessage(`ROM Carregada: ${file.name} • Core: ${detected.toUpperCase()}`);
   };
 
   // Load built-in real demo ROM (/roms/real_game.nes)
@@ -45,6 +73,7 @@ export default function EmulatorModal({ rom, onClose }) {
     if (localFileUrl && localFileUrl.startsWith("blob:")) {
       URL.revokeObjectURL(localFileUrl);
     }
+    setSelectedCore("nes");
     setLocalFile({ name: "Demo Retro (real_game.nes)", size: 24576 });
     setLocalFileUrl("/roms/real_game.nes");
     playStartSound();
@@ -241,7 +270,6 @@ export default function EmulatorModal({ rom, onClose }) {
   // Construct inline srcDoc for EmulatorJS client-side WebAssembly player
   const getEmulatorSrcDoc = () => {
     if (!localFileUrl) return "";
-    const core = localFileUrl.includes("nes") ? "nes" : (rom.emulatorType || "snes");
 
     return `<!DOCTYPE html>
 <html>
@@ -258,11 +286,12 @@ export default function EmulatorModal({ rom, onClose }) {
   </div>
   <script>
     EJS_player = '#game';
-    EJS_core = '${core}';
+    EJS_core = '${selectedCore}';
     EJS_gameUrl = '${localFileUrl}';
     EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
     EJS_startOnLoaded = true;
     EJS_language = 'pt-BR';
+    EJS_backgroundColor = '#080a0f';
   </script>
   <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
@@ -346,11 +375,41 @@ export default function EmulatorModal({ rom, onClose }) {
               boxShadow: "0 0 10px #10b981"
             }} />
             <h3 className="font-heading" style={{ fontSize: "1.2rem", color: "#ffffff", fontWeight: 700 }}>
-              {localFile ? localFile.name : rom.title} <span style={{ color: "var(--accent-emerald)", fontSize: "0.9rem" }}>[{rom.system} PT-BR]</span>
+              {localFile ? localFile.name : rom.title} <span style={{ color: "var(--accent-emerald)", fontSize: "0.9rem" }}>[{selectedCore.toUpperCase()}]</span>
             </h3>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            
+            {/* Core Selector Dropdown */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "rgba(255,255,255,0.05)", padding: "4px 8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
+              <Cpu size={14} color="var(--accent-emerald)" />
+              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Core:</span>
+              <select
+                value={selectedCore}
+                onChange={(e) => {
+                  playSelectSound();
+                  setSelectedCore(e.target.value);
+                }}
+                style={{
+                  backgroundColor: "transparent",
+                  border: "none",
+                  color: "#ffffff",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  outline: "none",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="psx" style={{ backgroundColor: "#12161f" }}>PlayStation 1 (PSX)</option>
+                <option value="snes" style={{ backgroundColor: "#12161f" }}>Super Nintendo (SNES)</option>
+                <option value="gba" style={{ backgroundColor: "#12161f" }}>Game Boy Advance (GBA)</option>
+                <option value="segaMD" style={{ backgroundColor: "#12161f" }}>Mega Drive (Sega)</option>
+                <option value="n64" style={{ backgroundColor: "#12161f" }}>Nintendo 64 (N64)</option>
+                <option value="nes" style={{ backgroundColor: "#12161f" }}>NES 8-Bit</option>
+              </select>
+            </div>
+
             {/* Quick Demo ROM Loader Button */}
             <button
               onClick={handleLoadDemoRom}
@@ -359,7 +418,7 @@ export default function EmulatorModal({ rom, onClose }) {
               title="Testar com a ROM real incluída no sistema"
             >
               <Play size={14} fill="var(--accent-cyan)" />
-              <span>Testar ROM Real Demo</span>
+              <span>ROM Demo</span>
             </button>
 
             {/* Upload Button */}
@@ -369,7 +428,7 @@ export default function EmulatorModal({ rom, onClose }) {
               style={{ padding: "6px 14px", fontSize: "0.82rem" }}
             >
               <FolderOpen size={16} />
-              <span>{localFile ? "Trocar Arquivo ROM" : "Selecionar Sua ROM (.smc/.gba)"}</span>
+              <span>{localFile ? "Trocar Arquivo" : "Selecionar ROM"}</span>
             </button>
 
             {localFile && (
@@ -420,6 +479,7 @@ export default function EmulatorModal({ rom, onClose }) {
           {localFileUrl ? (
             /* 100% Client-Side WebAssembly Emulator Engine with User's ROM File or Included ROM */
             <iframe
+              key={`${selectedCore}-${localFileUrl}`}
               srcDoc={getEmulatorSrcDoc()}
               title={`Emulador WebAssembly - ${localFile.name}`}
               style={{
@@ -463,7 +523,7 @@ export default function EmulatorModal({ rom, onClose }) {
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <FolderOpen size={16} color="var(--accent-emerald)" />
                   <span style={{ fontSize: "0.85rem", color: "#ffffff", fontWeight: 600 }}>
-                    Para testar com jogo real: clique em <strong style={{ color: "var(--accent-cyan)" }}>"Testar ROM Real Demo"</strong> ou envie seu arquivo <code style={{ color: "var(--accent-emerald)" }}>.smc / .gba / .bin / .nes</code>!
+                    Arquivo selecionado: <code style={{ color: "var(--accent-emerald)" }}>{localFile ? localFile.name : "Carregue sua ROM"}</code>
                   </span>
                 </div>
 
@@ -503,11 +563,11 @@ export default function EmulatorModal({ rom, onClose }) {
           gap: "10px"
         }}>
           <div>
-            <strong style={{ color: "#ffffff" }}>Como Funciona:</strong> Clique em <strong style={{ color: "var(--accent-cyan)" }}>"Testar ROM Real Demo"</strong> para rodar a ROM binary de teste no emulador WebAssembly, ou selecione qualquer arquivo (<code style={{ color: "var(--accent-emerald)" }}>.smc, .gba, .nes</code>) do seu PC!
+            <strong style={{ color: "#ffffff" }}>Dica PS1 / ISO / BIN:</strong> Se você carregou um jogo de PlayStation 1 (`Resident Evil 3.bin`), certifique-se de que o seletor <strong style={{ color: "var(--accent-cyan)" }}>Core: PlayStation 1 (PSX)</strong> esteja ativo no topo!
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--accent-emerald)", fontWeight: 600 }}>
-            <ShieldCheck size={15} /> 100% Seguro & Execução WebAssembly
+            <ShieldCheck size={15} /> Detecção Automática de Core Ativa
           </div>
         </div>
 
