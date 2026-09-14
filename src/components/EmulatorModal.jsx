@@ -7,7 +7,7 @@ export default function EmulatorModal({ rom, onClose }) {
   const [isMuted, setIsMuted] = useState(false);
   const [score, setScore] = useState(0);
   
-  // Local File ROM State
+  // Local or Bundled ROM File State
   const [localFile, setLocalFile] = useState(null);
   const [localFileUrl, setLocalFileUrl] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -19,7 +19,7 @@ export default function EmulatorModal({ rom, onClose }) {
   // Clean up Blob URLs on unmount
   useEffect(() => {
     return () => {
-      if (localFileUrl) {
+      if (localFileUrl && localFileUrl.startsWith("blob:")) {
         URL.revokeObjectURL(localFileUrl);
       }
     };
@@ -29,7 +29,7 @@ export default function EmulatorModal({ rom, onClose }) {
   const processLocalFile = (file) => {
     if (!file) return;
 
-    if (localFileUrl) {
+    if (localFileUrl && localFileUrl.startsWith("blob:")) {
       URL.revokeObjectURL(localFileUrl);
     }
 
@@ -38,6 +38,17 @@ export default function EmulatorModal({ rom, onClose }) {
     setLocalFileUrl(blobUrl);
     playStartSound();
     setActiveMessage(`ROM Local Carregada: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
+  };
+
+  // Load built-in real demo ROM (/roms/real_game.nes)
+  const handleLoadDemoRom = () => {
+    if (localFileUrl && localFileUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(localFileUrl);
+    }
+    setLocalFile({ name: "Demo Retro (real_game.nes)", size: 24576 });
+    setLocalFileUrl("/roms/real_game.nes");
+    playStartSound();
+    setActiveMessage("ROM Demonstrativa Real Carregada: real_game.nes (NES)");
   };
 
   const handleFileInputChange = (e) => {
@@ -230,7 +241,7 @@ export default function EmulatorModal({ rom, onClose }) {
   // Construct inline srcDoc for EmulatorJS client-side WebAssembly player
   const getEmulatorSrcDoc = () => {
     if (!localFileUrl) return "";
-    const core = rom.emulatorType || "snes";
+    const core = localFileUrl.includes("nes") ? "nes" : (rom.emulatorType || "snes");
 
     return `<!DOCTYPE html>
 <html>
@@ -311,7 +322,7 @@ export default function EmulatorModal({ rom, onClose }) {
               Solte seu arquivo de ROM aqui!
             </h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-              Formatos aceitos: .smc, .sfc, .gba, .bin, .z64, .md, .zip
+              Formatos aceitos: .smc, .sfc, .gba, .bin, .z64, .md, .nes, .zip
             </p>
           </div>
         )}
@@ -339,7 +350,18 @@ export default function EmulatorModal({ rom, onClose }) {
             </h3>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {/* Quick Demo ROM Loader Button */}
+            <button
+              onClick={handleLoadDemoRom}
+              className="btn-retro-secondary"
+              style={{ padding: "6px 12px", fontSize: "0.82rem", borderColor: "var(--accent-cyan)", color: "var(--accent-cyan)" }}
+              title="Testar com a ROM real incluída no sistema"
+            >
+              <Play size={14} fill="var(--accent-cyan)" />
+              <span>Testar ROM Real Demo</span>
+            </button>
+
             {/* Upload Button */}
             <button
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
@@ -347,14 +369,14 @@ export default function EmulatorModal({ rom, onClose }) {
               style={{ padding: "6px 14px", fontSize: "0.82rem" }}
             >
               <FolderOpen size={16} />
-              <span>{localFile ? "Trocar Arquivo ROM" : "Selecionar ROM do PC"}</span>
+              <span>{localFile ? "Trocar Arquivo ROM" : "Selecionar Sua ROM (.smc/.gba)"}</span>
             </button>
 
             {localFile && (
               <button
                 onClick={() => {
                   setLocalFile(null);
-                  if (localFileUrl) URL.revokeObjectURL(localFileUrl);
+                  if (localFileUrl && localFileUrl.startsWith("blob:")) URL.revokeObjectURL(localFileUrl);
                   setLocalFileUrl(null);
                   setActiveMessage("Modo Canvas Retro Ativado");
                 }}
@@ -396,7 +418,7 @@ export default function EmulatorModal({ rom, onClose }) {
           justifyContent: "center"
         }}>
           {localFileUrl ? (
-            /* 100% Client-Side WebAssembly Emulator Engine with User's Local File */
+            /* 100% Client-Side WebAssembly Emulator Engine with User's ROM File or Included ROM */
             <iframe
               srcDoc={getEmulatorSrcDoc()}
               title={`Emulador WebAssembly - ${localFile.name}`}
@@ -434,22 +456,32 @@ export default function EmulatorModal({ rom, onClose }) {
                 backdropFilter: "blur(8px)",
                 padding: "8px 16px",
                 borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-color)"
+                border: "1px solid var(--border-color)",
+                flexWrap: "wrap",
+                gap: "8px"
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <FolderOpen size={16} color="var(--accent-emerald)" />
                   <span style={{ fontSize: "0.85rem", color: "#ffffff", fontWeight: 600 }}>
-                    Para rodar seu jogo local: clique em <strong style={{ color: "var(--accent-emerald)" }}>"Selecionar ROM do PC"</strong> ou arraste seu arquivo <code style={{ color: "var(--accent-cyan)" }}>.smc / .gba / .bin</code> aqui!
+                    Para testar com jogo real: clique em <strong style={{ color: "var(--accent-cyan)" }}>"Testar ROM Real Demo"</strong> ou envie seu arquivo <code style={{ color: "var(--accent-emerald)" }}>.smc / .gba / .bin / .nes</code>!
                   </span>
                 </div>
 
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
+                    className="btn-retro-secondary"
+                    style={{ padding: "6px 12px", fontSize: "0.8rem", borderColor: "var(--accent-cyan)", color: "var(--accent-cyan)" }}
+                    onClick={handleLoadDemoRom}
+                  >
+                    <Play size={14} fill="var(--accent-cyan)" /> Testar ROM Demo
+                  </button>
+
+                  <button
                     className="btn-retro-primary"
                     style={{ padding: "6px 12px", fontSize: "0.8rem" }}
                     onClick={() => fileInputRef.current && fileInputRef.current.click()}
                   >
-                    <Upload size={14} /> Carregar Seu Arquivo
+                    <Upload size={14} /> Selecionar Seu Arquivo
                   </button>
                 </div>
               </div>
@@ -471,11 +503,11 @@ export default function EmulatorModal({ rom, onClose }) {
           gap: "10px"
         }}>
           <div>
-            <strong style={{ color: "#ffffff" }}>Como Funciona:</strong> Selecione qualquer ROM (<code style={{ color: "var(--accent-emerald)" }}>.smc, .sfc, .gba, .bin, .z64</code>) salva no seu computador. O jogo é processado 100% no seu navegador com suporte a controles USB e teclado!
+            <strong style={{ color: "#ffffff" }}>Como Funciona:</strong> Clique em <strong style={{ color: "var(--accent-cyan)" }}>"Testar ROM Real Demo"</strong> para rodar a ROM binary de teste no emulador WebAssembly, ou selecione qualquer arquivo (<code style={{ color: "var(--accent-emerald)" }}>.smc, .gba, .nes</code>) do seu PC!
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--accent-emerald)", fontWeight: 600 }}>
-            <ShieldCheck size={15} /> 100% Seguro & Privado (Sem Upload Remoto)
+            <ShieldCheck size={15} /> 100% Seguro & Execução WebAssembly
           </div>
         </div>
 
