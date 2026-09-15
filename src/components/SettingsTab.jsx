@@ -8,7 +8,7 @@ export default function SettingsTab() {
 
   return (
     <div style={{ padding: "20px 20px 80px 20px" }}>
-      <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>
+      <h2 className="font-heading" style={{ fontSize: "1.35rem", fontWeight: 400, color: "var(--text-primary)", marginBottom: "4px" }}>
         Configurações
       </h2>
       <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "20px" }}>

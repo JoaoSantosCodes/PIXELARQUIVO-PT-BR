@@ -258,7 +258,7 @@ export default function EmulatorModal({ rom, localFile, onClose }) {
                   margin: "0 auto 16px auto"
                 }} />
 
-                <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#ffffff", marginBottom: "6px" }}>
+                <h4 className="font-heading" style={{ fontSize: "1.15rem", fontWeight: 400, color: "#ffffff", marginBottom: "6px" }}>
                   Preparando seu jogo...
                 </h4>
                 <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
@@ -301,7 +301,7 @@ export default function EmulatorModal({ rom, localFile, onClose }) {
                   <AlertTriangle size={24} />
                 </div>
 
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#ffffff", marginBottom: "6px" }}>
+                <h3 className="font-heading" style={{ fontSize: "1.15rem", fontWeight: 400, color: "#ffffff", marginBottom: "6px" }}>
                   {errorMessage.title}
                 </h3>
                 <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: 1.5 }}>

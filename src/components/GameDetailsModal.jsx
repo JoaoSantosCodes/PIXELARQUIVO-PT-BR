@@ -60,7 +60,7 @@ export default function GameDetailsModal({ rom, onClose, onPlayRom }) {
         </div>
 
         {/* Title & Specs */}
-        <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "#ffffff", marginBottom: "4px" }}>
+        <h3 className="font-heading" style={{ fontSize: "1.3rem", fontWeight: 400, color: "#ffffff", marginBottom: "4px" }}>
           {rom.title}
         </h3>
         <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "20px" }}>
@@ -111,7 +111,7 @@ export default function GameDetailsModal({ rom, onClose, onPlayRom }) {
               onPlayRom(rom);
             }}
           >
-            <Play size={18} fill="#0d0e12" />
+            <Play size={18} fill="#17120d" />
             <span>Continuar</span>
           </button>
 

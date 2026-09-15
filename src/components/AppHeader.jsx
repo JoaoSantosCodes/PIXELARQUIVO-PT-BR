@@ -26,7 +26,7 @@ export default function AppHeader({ onOpenSearch, onOpenSettings, searchActive, 
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#0d0e12"
+            color: "#17120d"
           }}>
             <Gamepad size={18} strokeWidth={2.5} />
           </div>

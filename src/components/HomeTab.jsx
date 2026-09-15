@@ -28,7 +28,7 @@ export default function HomeTab({
     <div style={{ padding: "16px 20px 80px 20px" }}>
       {/* User Greeting */}
       <div style={{ marginBottom: "20px" }}>
-        <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--text-primary)" }}>
+        <h2 className="font-heading" style={{ fontSize: "1.35rem", fontWeight: 400, color: "var(--text-primary)" }}>
           Olá, jogador 👋
         </h2>
         <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "2px" }}>
@@ -99,7 +99,7 @@ export default function HomeTab({
                 style={{ padding: "8px 16px", fontSize: "0.85rem", alignSelf: "flex-start" }}
                 onClick={() => onPlayRom(featuredLastGame)}
               >
-                <Play size={15} fill="#0d0e12" />
+                <Play size={15} fill="#17120d" />
                 <span>Continuar</span>
               </button>
             </div>
@@ -115,7 +115,7 @@ export default function HomeTab({
           justifyContent: "space-between",
           marginBottom: "14px"
         }}>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+          <h3 className="font-heading" style={{ fontSize: "1.05rem", fontWeight: 400, color: "#ffffff" }}>
             Minha biblioteca
           </h3>
           <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
@@ -142,7 +142,7 @@ export default function HomeTab({
                   padding: "6px 14px",
                   borderRadius: "var(--radius-full)",
                   backgroundColor: isActive ? "var(--accent-amber)" : "var(--bg-surface)",
-                  color: isActive ? "#0d0e12" : "var(--text-secondary)",
+                  color: isActive ? "#17120d" : "var(--text-secondary)",
                   border: isActive ? "none" : "1px solid var(--border-subtle)",
                   fontSize: "0.8rem",
                   fontWeight: isActive ? 700 : 500,
@@ -224,7 +224,7 @@ export default function HomeTab({
           bottom: "82px",
           right: "20px",
           backgroundColor: "var(--accent-amber)",
-          color: "#0d0e12",
+          color: "#17120d",
           borderRadius: "var(--radius-full)",
           padding: "12px 20px",
           fontWeight: 700,

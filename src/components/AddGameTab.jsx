@@ -57,15 +57,15 @@ export default function AddGameTab({ onPlayLocalFile }) {
 
   return (
     <div style={{ padding: "20px 20px 80px 20px" }}>
-      {/* Title */}
-      <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>
+      {/* Title with Caprasimo font */}
+      <h2 className="font-heading" style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>
         Adicionar jogo
       </h2>
       <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "20px" }}>
         Importe qualquer arquivo de ROM para jogar instantaneamente no hub.
       </p>
 
-      {/* File Input */}
+      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -74,22 +74,23 @@ export default function AddGameTab({ onPlayLocalFile }) {
         style={{ display: "none" }}
       />
 
-      {/* Large Dropzone Card */}
+      {/* Large Dropzone Card with Amber Dashed Border */}
       {!selectedFile ? (
         <div
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
           className="ui-card"
           style={{
-            padding: "40px 20px",
+            padding: "44px 20px",
             textAlign: "center",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            border: "2px dashed var(--border-strong)",
+            border: "2px dashed var(--accent-amber)",
             backgroundColor: "var(--bg-surface)",
             cursor: "pointer",
-            borderRadius: "var(--radius-lg)"
+            borderRadius: "var(--radius-lg)",
+            boxShadow: "0 0 30px rgba(246, 160, 107, 0.08)"
           }}
         >
           <div style={{
@@ -106,7 +107,7 @@ export default function AddGameTab({ onPlayLocalFile }) {
             <Upload size={28} />
           </div>
 
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#ffffff", marginBottom: "6px" }}>
+          <h3 className="font-heading" style={{ fontSize: "1.25rem", fontWeight: 700, color: "#ffffff", marginBottom: "6px" }}>
             Selecione seu arquivo
           </h3>
           <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", maxWidth: "300px", marginBottom: "20px" }}>
@@ -119,20 +120,21 @@ export default function AddGameTab({ onPlayLocalFile }) {
           </button>
         </div>
       ) : (
-        /* File Info Card */
+        /* File Info Card with Sage Circular Badge */
         <div className="ui-card" style={{ padding: "24px", border: "1px solid var(--border-accent)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
             <div style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "var(--radius-sm)",
-              backgroundColor: "rgba(16, 185, 129, 0.15)",
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              backgroundColor: "var(--state-success-bg)",
               color: "var(--state-success)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              border: "1px solid rgba(174, 191, 146, 0.4)"
             }}>
-              <FileCode size={22} />
+              <CheckCircle2 size={24} />
             </div>
 
             <div style={{ flex: 1, overflow: "hidden" }}>
@@ -180,7 +182,7 @@ export default function AddGameTab({ onPlayLocalFile }) {
               style={{ flex: 1 }}
               onClick={handleStartPlay}
             >
-              <Play size={18} fill="#0d0e12" />
+              <Play size={18} fill="#0f1218" />
               <span>Jogar agora</span>
             </button>
 

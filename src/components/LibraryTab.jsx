@@ -30,7 +30,7 @@ export default function LibraryTab({ roms, onSelectRom, onPlayRom }) {
     <div style={{ padding: "20px 20px 80px 20px" }}>
       {/* Title */}
       <div style={{ marginBottom: "16px" }}>
-        <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)" }}>
+        <h2 className="font-heading" style={{ fontSize: "1.35rem", fontWeight: 400, color: "var(--text-primary)" }}>
           Biblioteca de Jogos
         </h2>
         <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
@@ -78,7 +78,7 @@ export default function LibraryTab({ roms, onSelectRom, onPlayRom }) {
                 padding: "6px 14px",
                 borderRadius: "var(--radius-full)",
                 backgroundColor: isActive ? "var(--accent-amber)" : "var(--bg-surface)",
-                color: isActive ? "#0d0e12" : "var(--text-secondary)",
+                color: isActive ? "#17120d" : "var(--text-secondary)",
                 border: isActive ? "none" : "1px solid var(--border-subtle)",
                 fontSize: "0.8rem",
                 fontWeight: isActive ? 700 : 500,
@@ -147,7 +147,7 @@ export default function LibraryTab({ roms, onSelectRom, onPlayRom }) {
                 borderRadius: "50%",
                 backgroundColor: "var(--accent-amber)",
                 border: "none",
-                color: "#0d0e12",
+                color: "#17120d",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -155,7 +155,7 @@ export default function LibraryTab({ roms, onSelectRom, onPlayRom }) {
                 boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)"
               }}
             >
-              <Play size={16} fill="#0d0e12" />
+              <Play size={16} fill="#17120d" />
             </button>
           </div>
         ))}

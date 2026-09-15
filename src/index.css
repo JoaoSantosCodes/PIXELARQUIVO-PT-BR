@@ -1,55 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  /* Premium Dark Charcoal Palette */
-  --bg-app: #0c0e12;
-  --bg-surface: #141820;
-  --bg-surface-elevated: #1e2430;
-  --bg-card: #181d27;
-  --bg-card-hover: #222938;
+  /* Organic Palette Tokens */
+  --bg-app: #0f1218;
+  --bg-surface: #171c26;
+  --bg-surface-elevated: #212836;
+  --bg-card: #1c222e;
+  --bg-card-hover: #262e3e;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --border-accent: rgba(245, 158, 11, 0.4);
+  --border-subtle: rgba(245, 234, 216, 0.08);
+  --border-strong: rgba(245, 234, 216, 0.16);
+  --border-accent: rgba(246, 160, 107, 0.4);
 
-  /* Primary Accent: Burnt Orange / Warm Amber */
-  --accent-amber: #f59e0b;
-  --accent-amber-hover: #d97706;
-  --accent-amber-glow: rgba(245, 158, 11, 0.2);
+  /* Terracotta Primary Accent */
+  --accent-amber: #f6a06b;
+  --accent-amber-hover: #d67f48;
+  --accent-amber-glow: rgba(246, 160, 107, 0.2);
 
-  /* States */
-  --state-success: #10b981;
-  --state-success-bg: rgba(16, 185, 129, 0.12);
-  --state-error: #ef4444;
-  --state-error-bg: rgba(239, 68, 68, 0.12);
+  /* Sage Green (Success/Compatible) & Terracotta Red (Error) */
+  --state-success: #aebf92;
+  --state-success-bg: rgba(174, 191, 146, 0.15);
+  --state-error: #d2624a;
+  --state-error-bg: rgba(210, 98, 74, 0.15);
 
   /* Platform Badge Colors */
-  --color-ps1: #3b82f6;
-  --color-snes: #e11d48;
-  --color-gba: #10b981;
-  --color-nes: #f59e0b;
-  --color-megadrive: #06b6d4;
-  --color-n64: #8b5cf6;
+  --color-ps1: #7c93c3;
+  --color-snes: #f6a06b;
+  --color-gba: #aebf92;
+  --color-nes: #e5b869;
+  --color-megadrive: #66b2b2;
+  --color-n64: #b08ebb;
 
-  /* Typography */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-inverse: #0f172a;
+  /* Warm Off-White Typography */
+  --text-primary: #f5ead8;
+  --text-secondary: #a6b0c2;
+  --text-muted: #737e92;
+  --text-inverse: #0f1218;
 
-  --font-heading: 'Rajdhani', sans-serif;
-  --font-body: 'Outfit', sans-serif;
+  --font-heading: 'Caprasimo', serif;
+  --font-body: 'Figtree', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Geometry & Shadows */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  /* Geometry & Rounded Radii */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
   --radius-full: 9999px;
 
-  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.55);
+  --shadow-subtle: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.65);
 }
 
 * {
@@ -69,6 +69,11 @@ body {
   user-select: none;
 }
 
+.font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: 0.3px;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -78,7 +83,7 @@ body {
   background: var(--bg-app);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a3242;
+  background: #2a3344;
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -95,8 +100,8 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
-  padding-bottom: 74px; /* Clearance for BottomNavigation */
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.85);
+  padding-bottom: 74px;
 }
 
 @media (min-width: 1024px) {
@@ -128,7 +133,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-xs);
   font-size: 0.72rem;
   font-weight: 700;
@@ -136,10 +141,10 @@ body {
   text-transform: uppercase;
 }
 
-/* Primary Amber Button */
+/* Primary Terracotta Button */
 .btn-primary {
   background-color: var(--accent-amber);
-  color: #0d0e12;
+  color: #0f1218;
   font-weight: 700;
   padding: 12px 20px;
   border-radius: var(--radius-sm);
@@ -151,7 +156,7 @@ body {
   gap: 8px;
   font-size: 0.95rem;
   transition: all 0.18s ease;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 4px 18px rgba(246, 160, 107, 0.3);
 }
 
 .btn-primary:active {
@@ -176,10 +181,10 @@ body {
 }
 
 .btn-secondary:active {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(245, 234, 216, 0.08);
 }
 
-/* Bottom Navigation Bar */
+/* Bottom Navigation Bar with Amber Indicator Bar */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -188,7 +193,7 @@ body {
   width: 100%;
   max-width: 520px;
   height: 68px;
-  background-color: rgba(12, 14, 18, 0.95);
+  background-color: rgba(15, 18, 24, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-subtle);
@@ -212,11 +217,12 @@ body {
   gap: 4px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
   background: none;
+  position: relative;
   transition: color 0.18s ease;
 }
 
@@ -224,15 +230,21 @@ body {
   color: var(--accent-amber);
 }
 
-.nav-item.active svg {
-  transform: translateY(-2px);
+.bottom-nav-indicator {
+  position: absolute;
+  top: 0;
+  width: 36px;
+  height: 3px;
+  background-color: var(--accent-amber);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(246, 160, 107, 0.5);
 }
 
 /* Modal Backdrop */
 .modal-backdrop-mobile {
   position: fixed;
   inset: 0;
-  background-color: rgba(6, 8, 11, 0.88);
+  background-color: rgba(8, 10, 14, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
@@ -258,7 +270,7 @@ body {
 .virtual-controller {
   width: 100%;
   padding: 16px 20px 24px 20px;
-  background-color: #0a0c0f;
+  background-color: #0b0e13;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
@@ -275,7 +287,7 @@ body {
 
 .dpad-btn {
   position: absolute;
-  background-color: #1e2430;
+  background-color: #1e2532;
   border: 1px solid var(--border-strong);
   color: var(--text-primary);
   display: flex;
@@ -287,14 +299,14 @@ body {
 
 .dpad-btn:active {
   background-color: var(--accent-amber);
-  color: #000;
+  color: #0f1218;
 }
 
-.dpad-up { top: 0; left: 40px; width: 40px; height: 42px; border-radius: 6px 6px 0 0; }
-.dpad-down { bottom: 0; left: 40px; width: 40px; height: 42px; border-radius: 0 0 6px 6px; }
-.dpad-left { top: 40px; left: 0; width: 42px; height: 40px; border-radius: 6px 0 0 6px; }
-.dpad-right { top: 40px; right: 0; width: 42px; height: 40px; border-radius: 0 6px 6px 0; }
-.dpad-center { top: 40px; left: 40px; width: 40px; height: 40px; background: #161b24; pointer-events: none; }
+.dpad-up { top: 0; left: 40px; width: 40px; height: 42px; border-radius: 8px 8px 0 0; }
+.dpad-down { bottom: 0; left: 40px; width: 40px; height: 42px; border-radius: 0 0 8px 8px; }
+.dpad-left { top: 40px; left: 0; width: 42px; height: 40px; border-radius: 8px 0 0 8px; }
+.dpad-right { top: 40px; right: 0; width: 42px; height: 40px; border-radius: 0 8px 8px 0; }
+.dpad-center { top: 40px; left: 40px; width: 40px; height: 40px; background: #161c28; pointer-events: none; }
 
 .action-buttons-container {
   position: relative;
@@ -307,7 +319,7 @@ body {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background-color: #1e2430;
+  background-color: #1e2532;
   border: 1px solid var(--border-strong);
   color: var(--text-primary);
   font-weight: 800;
@@ -322,7 +334,7 @@ body {
 .action-btn:active {
   transform: scale(0.92);
   background-color: var(--accent-amber);
-  color: #000;
+  color: #0f1218;
 }
 
 .btn-y { top: 0; left: 39px; }
@@ -336,10 +348,10 @@ body {
 }
 
 .pill-btn {
-  background-color: #181d27;
+  background-color: #1a202c;
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 6px 14px;
   border-radius: var(--radius-full);
@@ -349,5 +361,5 @@ body {
 
 .pill-btn:active {
   background-color: var(--accent-amber);
-  color: #000;
+  color: #0f1218;
 }

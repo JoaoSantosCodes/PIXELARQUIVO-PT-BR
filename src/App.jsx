@@ -59,7 +59,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ backgroundColor: "#080a0d", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "var(--bg-app)", minHeight: "100vh" }}>
       {/* Mobile Frame Viewport */}
       <div className="app-viewport">
         {/* Top Header */}

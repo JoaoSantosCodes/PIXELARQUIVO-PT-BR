@@ -20,6 +20,7 @@ export default function BottomNavigation({ activeTab, setActiveTab }) {
             className={`nav-item ${isActive ? "active" : ""}`}
             onClick={() => setActiveTab(item.id)}
           >
+            {isActive && <div className="bottom-nav-indicator" />}
             <IconComponent size={20} strokeWidth={isActive ? 2.5 : 1.8} />
             <span>{item.label}</span>
           </button>
